@@ -1,0 +1,14 @@
+identifier: gridrolldg_e73
+name: GridRollDG E73 nRF52840
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+ram: 256
+flash: 1024
+supported:
+  - gpio
+  - adc
+  - ble
+  - usb_device

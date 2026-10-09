@@ -1,0 +1,11 @@
+file_format: "1"
+id: gridrolldg
+name: GridRollDG
+type: shield
+features:
+  - keys
+  - encoder
+  - pointer
+siblings:
+  - gridrolldg_left
+  - gridrolldg_right

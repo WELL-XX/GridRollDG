@@ -1,0 +1,16 @@
+description: PAW3222 local input device with a released, half-duplex SDIO line
+compatible: "pandakb,paw3222-sdio"
+include: base.yaml
+properties:
+  sclk-gpios: {type: phandle-array, required: true}
+  sdio-gpios: {type: phandle-array, required: true}
+  cs-gpios: {type: phandle-array, required: true}
+  motion-gpios: {type: phandle-array, required: true}
+  res-cpi:
+    type: int
+    default: 988
+    description: Physical sensor CPI (608 to 4826 in steps of 38); ZMK input processors scale the pointer/scroll output.
+  clock-half-period-us: {type: int, default: 5}
+  turnaround-us: {type: int, default: 100}
+  transaction-gap-us: {type: int, default: 50}
+  poll-interval-ms: {type: int, default: 5}

@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/adafruit/Adafruit_nRF52_Bootloader",
+  "revision": "c67f0bcf0fa8e841426335b1bbde91cda6ca1f50",
+  "tag": "0.11.0",
+  "softdevice": "s140 6.1.1",
+  "application_start": "0x26000"
+}

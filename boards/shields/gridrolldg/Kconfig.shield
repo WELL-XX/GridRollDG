@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MIT
+config SHIELD_GRIDROLLDG_LEFT
+    def_bool $(shields_list_contains,gridrolldg_left)
+config SHIELD_GRIDROLLDG_RIGHT
+    def_bool $(shields_list_contains,gridrolldg_right)

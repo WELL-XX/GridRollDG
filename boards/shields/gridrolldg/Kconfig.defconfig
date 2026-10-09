@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT
+if SHIELD_GRIDROLLDG_LEFT || SHIELD_GRIDROLLDG_RIGHT
+config ZMK_KEYBOARD_NAME
+    default "GridRollDG"
+config ZMK_SPLIT
+    default y
+endif
+if SHIELD_GRIDROLLDG_RIGHT
+config ZMK_SPLIT_ROLE_CENTRAL
+    default y
+endif

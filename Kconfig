@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: MIT
+config GRIDROLLDG_PAW3222
+    bool "GridRollDG PAW3222 half-duplex GPIO input driver"
+    default y if DT_HAS_PANDAKB_PAW3222_SDIO_ENABLED
+    depends on GPIO && INPUT
+
+config GRIDROLLDG_PAW3222_LOG_LEVEL
+    int "PAW3222 log level"
+    range 0 4
+    default 1
+    depends on GRIDROLLDG_PAW3222
+
+config GRIDROLLDG_WHEEL
+    bool "One HID wheel tick per encoder detent"
+    default y if DT_HAS_WELLXX_BEHAVIOR_WHEEL_ENABLED
+    depends on ZMK_POINTING && INPUT

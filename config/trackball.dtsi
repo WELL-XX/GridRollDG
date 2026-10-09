@@ -1,0 +1,9 @@
+/* SPDX-License-Identifier: MIT
+ * Sensor orientation and pointer/scroll scaling. Rebuild after changing these.
+ */
+#define GRIDROLLDG_TRACKBALL_CPI 988
+#define GRIDROLLDG_TRACKBALL_TRANSFORM 0
+#define GRIDROLLDG_POINTER_NUMERATOR 1
+#define GRIDROLLDG_POINTER_DENOMINATOR 1
+#define GRIDROLLDG_SCROLL_NUMERATOR 1
+#define GRIDROLLDG_SCROLL_DENOMINATOR 12

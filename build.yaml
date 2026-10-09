@@ -1,0 +1,15 @@
+include:
+  - board: gridrolldg_e73
+    shield: gridrolldg_left
+    artifact-name: GridRollDG-left
+  - board: gridrolldg_e73
+    shield: gridrolldg_right
+    snippet: studio-rpc-usb-uart
+    artifact-name: GridRollDG-right
+  - board: gridrolldg_e73
+    shield: gridrolldg_right
+    snippet: studio-rpc-usb-uart gridrolldg-diagnostics
+    artifact-name: GridRollDG-right-diagnostics
+  - board: gridrolldg_e73
+    shield: settings_reset
+    artifact-name: GridRollDG-settings-reset

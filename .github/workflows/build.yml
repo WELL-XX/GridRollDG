@@ -1,0 +1,102 @@
+name: Build GridRollDG firmware
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: gridrolldg-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  firmware:
+    runs-on: ubuntu-24.04
+    container:
+      image: zmkfirmware/zmk-build-arm@sha256:ba4e851529ac9a5cf6b02e7dd3297b78bd1b0e75546b9f1bb22023437836373e
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Verify tooling bundled in the pinned build image
+        run: |
+          python3 -m pip install intelhex==2.3.0 PyYAML==6.0.3
+          python3 -c 'import intelhex, yaml; print("Pinned build tooling ready")'
+          west --version
+      - name: Verify hardware and SDIO error recovery
+        run: |
+          python3 scripts/check_hardware.py
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          cc -Wall -Wextra -Werror -std=c11 -Idrivers/input tests/test_sdio.c drivers/input/paw3222_sdio.c -o /tmp/test-sdio
+          /tmp/test-sdio
+      - name: Fetch locked firmware dependencies
+        run: |
+          mkdir -p /tmp/gridrolldg-workspace/config
+          mkdir -p artifacts
+          cp config/west.yml /tmp/gridrolldg-workspace/config/west.yml
+          west init -l /tmp/gridrolldg-workspace/config
+          cd /tmp/gridrolldg-workspace
+          west update --narrow --fetch-opt=--filter=blob:none
+          west manifest --freeze > "$GITHUB_WORKSPACE/artifacts/west-frozen.yml"
+      - name: Build left, right, diagnostic and settings-reset firmware
+        run: python3 scripts/build_firmware.py --workspace /tmp/gridrolldg-workspace --out artifacts
+      - name: Upload private firmware and build logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: GridRollDG-firmware
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
+
+  bootloader:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install locked tooling
+        run: |
+          python3 -m venv /tmp/gridrolldg-tools
+          /tmp/gridrolldg-tools/bin/pip install -r ci/requirements.lock
+          echo /tmp/gridrolldg-tools/bin >> "$GITHUB_PATH"
+          curl -fLsS --retry 3 https://developer.arm.com/-/media/Files/downloads/gnu/12.3.rel1/binrel/arm-gnu-toolchain-12.3.rel1-x86_64-arm-none-eabi.tar.xz -o /tmp/arm-toolchain.tar.xz
+          echo '12a2815644318ebcceaf84beabb665d0924b6e79e21048452c5331a56332b309  /tmp/arm-toolchain.tar.xz' | sha256sum --check
+          tar -xf /tmp/arm-toolchain.tar.xz -C /tmp
+          echo /tmp/arm-gnu-toolchain-12.3.rel1-x86_64-arm-none-eabi/bin >> "$GITHUB_PATH"
+      - name: Fetch pinned Adafruit bootloader
+        run: |
+          git clone --filter=blob:none https://github.com/adafruit/Adafruit_nRF52_Bootloader /tmp/gridrolldg-bootloader
+          git -C /tmp/gridrolldg-bootloader checkout c67f0bcf0fa8e841426335b1bbde91cda6ca1f50
+          git -C /tmp/gridrolldg-bootloader submodule update --init --depth 1
+      - name: Build PCB1 first-flash bootloader package
+        run: python scripts/build_bootloader.py --source /tmp/gridrolldg-bootloader --out artifacts
+      - name: Upload private first-flash package and build logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: GridRollDG-first-flash
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
+
+  package:
+    runs-on: ubuntu-24.04
+    needs: [firmware, bootloader]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: GridRollDG-firmware
+          path: /tmp/griddg-firmware
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: GridRollDG-first-flash
+          path: /tmp/griddg-bootloader
+      - name: Assemble and verify complete first-flash and update packages
+        run: |
+          python3 -m venv /tmp/griddg-package-tools
+          /tmp/griddg-package-tools/bin/pip install intelhex==2.3.0
+          /tmp/griddg-package-tools/bin/python scripts/package_firmware.py --firmware /tmp/griddg-firmware --bootloader /tmp/griddg-bootloader --out artifacts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: GridRollDG-ready-to-flash
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30

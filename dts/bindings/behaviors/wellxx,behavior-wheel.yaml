@@ -1,0 +1,7 @@
+description: One immediate mouse wheel tick, without timed mouse-key acceleration
+compatible: "wellxx,behavior-wheel"
+include: zero_param.yaml
+properties:
+  delta:
+    type: int
+    required: true

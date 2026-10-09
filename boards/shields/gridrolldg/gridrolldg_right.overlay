@@ -1,0 +1,43 @@
+/* SPDX-License-Identifier: MIT */
+#include "gridrolldg.dtsi"
+#include <input/processors.dtsi>
+#include <dt-bindings/zmk/input_transform.h>
+#include "../../../config/trackball.dtsi"
+
+&default_transform { col-offset = <6>; };
+&kscan0 {
+    row-gpios = <&gpio0 9 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
+                <&gpio0 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
+                <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>,
+                <&gpio0 31 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+    col-gpios = <&gpio0 24 GPIO_ACTIVE_HIGH>,
+                <&gpio0 10 GPIO_ACTIVE_HIGH>,
+                <&gpio0 3 GPIO_ACTIVE_HIGH>,
+                <&gpio1 11 GPIO_ACTIVE_HIGH>,
+                <&gpio1 10 GPIO_ACTIVE_HIGH>,
+                <&gpio0 28 GPIO_ACTIVE_HIGH>;
+};
+
+/ {
+    trackball: trackball {
+        compatible = "pandakb,paw3222-sdio";
+        sdio-gpios = <&gpio1 9 GPIO_ACTIVE_HIGH>;
+        sclk-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH>;
+        cs-gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
+        motion-gpios = <&gpio0 15 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        res-cpi = <GRIDROLLDG_TRACKBALL_CPI>;
+    };
+    trackball_listener: trackball_listener {
+        compatible = "zmk,input-listener";
+        device = <&trackball>;
+        input-processors = <&zip_xy_transform GRIDROLLDG_TRACKBALL_TRANSFORM>,
+                           <&zip_xy_scaler GRIDROLLDG_POINTER_NUMERATOR GRIDROLLDG_POINTER_DENOMINATOR>;
+        scroll {
+            layers = <2>;
+            input-processors = <&zip_xy_transform GRIDROLLDG_TRACKBALL_TRANSFORM>,
+                               <&zip_xy_to_scroll_mapper>,
+                               <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>,
+                               <&zip_scroll_scaler GRIDROLLDG_SCROLL_NUMERATOR GRIDROLLDG_SCROLL_DENOMINATOR>;
+        };
+    };
+};

@@ -1,0 +1,91 @@
+/* SPDX-License-Identifier: MIT */
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
+#include <dt-bindings/zmk/pointing.h>
+
+#define BASE 0
+#define FN 1
+#define MOUSE 2
+#define SYSTEM 3
+
+/ {
+    behaviors {
+        wheel_up: wheel_up {
+            compatible = "wellxx,behavior-wheel";
+            #binding-cells = <0>;
+            delta = <1>;
+            display-name = "Wheel Up";
+        };
+        wheel_down: wheel_down {
+            compatible = "wellxx,behavior-wheel";
+            #binding-cells = <0>;
+            delta = <(-1)>;
+            display-name = "Wheel Down";
+        };
+        encoder_scroll: encoder_scroll {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            bindings = <&wheel_up>, <&wheel_down>;
+        };
+    };
+    wheel_up_listener {
+        compatible = "zmk,input-listener";
+        device = <&wheel_up>;
+    };
+    wheel_down_listener {
+        compatible = "zmk,input-listener";
+        device = <&wheel_down>;
+    };
+    conditional_layers {
+        compatible = "zmk,conditional-layers";
+        system {
+            if-layers = <FN MOUSE>;
+            then-layer = <SYSTEM>;
+        };
+    };
+    keymap {
+        compatible = "zmk,keymap";
+        base {
+            display-name = "QWERTY";
+            bindings = <
+&kp ESC    &kp Q    &kp W     &kp E        &kp R    &kp T       &kp Y      &kp U     &kp I      &kp O    &kp P     &kp BSPC
+&kp TAB    &kp A    &kp S     &kp D        &kp F    &kp G       &kp H      &kp J     &kp K      &kp L    &kp SEMI  &kp RET
+&kp LSHFT  &kp Z    &kp X     &kp C        &kp V    &kp B       &kp N      &kp M     &kp COMMA  &kp DOT  &kp FSLH  &kp RSHFT
+&kp LCTRL  &kp LGUI &kp LALT  &kp C_MUTE   &mo FN   &kp SPACE   &mo MOUSE  &kp LEFT             &kp DOWN &kp UP    &kp RIGHT
+            >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
+        fn {
+            display-name = "Numbers / Fn";
+            bindings = <
+&kp GRAVE  &kp N1    &kp N2    &kp N3    &kp N4    &kp N5     &kp N6    &kp N7    &kp N8    &kp N9    &kp N0    &kp DEL
+&kp F1     &kp F2    &kp F3    &kp F4    &kp F5    &kp F6     &kp F7    &kp F8    &kp F9    &kp F10   &kp F11   &kp F12
+&trans     &kp MINUS &kp EQUAL &kp LBKT  &kp RBKT  &kp BSLH   &kp SQT   &kp HOME  &kp END   &kp PG_DN &kp PG_UP &trans
+&trans     &trans    &trans    &trans    &trans    &trans     &trans    &trans               &trans    &trans    &trans
+            >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
+        mouse {
+            display-name = "Mouse / Scroll";
+            bindings = <
+&trans &trans &trans &trans &trans &trans  &trans       &trans       &trans       &trans       &trans       &trans
+&trans &trans &trans &trans &trans &trans  &mkp LCLK    &mkp MCLK    &mkp RCLK    &mkp MB4     &mkp MB5     &trans
+&trans &trans &trans &trans &trans &trans  &trans       &trans       &trans       &trans       &trans       &trans
+&trans &trans &trans &trans &trans &trans  &trans       &trans                    &trans       &trans       &trans
+            >;
+            sensor-bindings = <&encoder_scroll>;
+        };
+        system {
+            display-name = "System / Pairing";
+            bindings = <
+&studio_unlock &out OUT_USB &out OUT_BLE &trans &trans &trans  &trans &trans &trans &trans &trans &trans
+&bt BT_SEL 0   &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4 &bt BT_CLR  &trans &trans &trans &trans &trans &trans
+&bootloader    &trans       &trans       &trans &trans &trans  &trans &trans &trans &trans &trans &bootloader
+&trans         &trans       &trans       &trans &trans &trans  &trans &trans               &trans &trans &trans
+            >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
+    };
+};

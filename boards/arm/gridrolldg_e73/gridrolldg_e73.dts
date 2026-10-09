@@ -1,0 +1,38 @@
+/* SPDX-License-Identifier: MIT */
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+
+/ {
+    model = "GridRollDG E73-2G4M08S1CX";
+    compatible = "wellxx,gridrolldg-e73";
+    chosen {
+        zephyr,sram = &sram0;
+        zephyr,flash = &flash0;
+        zephyr,code-partition = &code_partition;
+        zmk,battery = &vbatt;
+    };
+    vbatt: vbatt {
+        compatible = "zmk,battery-voltage-divider";
+        io-channels = <&adc 2>;
+        output-ohms = <2000000>;
+        full-ohms = <2820000>;
+    };
+};
+
+&gpio0 { status = "okay"; };
+&gpio1 { status = "okay"; };
+&gpiote { status = "okay"; };
+&adc { status = "okay"; };
+zephyr_udc0: &usbd { status = "okay"; };
+
+&flash0 {
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
+        sd_partition: partition@0 { reg = <0x0 0x26000>; };
+        code_partition: partition@26000 { reg = <0x26000 0xc6000>; };
+        storage_partition: partition@ec000 { reg = <0xec000 0x8000>; };
+        boot_partition: partition@f4000 { reg = <0xf4000 0xc000>; };
+    };
+};
