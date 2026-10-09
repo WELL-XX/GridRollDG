@@ -18,7 +18,10 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Verify tooling bundled in the pinned build image
         run: |
-          python3 -m pip install intelhex==2.3.0 PyYAML==6.0.3
+          mkdir -p artifacts
+          apt-get update
+          apt-get install -y --no-install-recommends python3-pip
+          python3 -m pip install --break-system-packages intelhex==2.3.0 PyYAML==6.0.3
           python3 -c 'import intelhex, yaml; print("Pinned build tooling ready")'
           west --version
       - name: Verify hardware and SDIO error recovery
