@@ -38,5 +38,5 @@ static const struct behavior_driver_api wheel_api = {
         .delta = (int16_t)DT_INST_PROP(n, delta), \
     }; \
     BEHAVIOR_DT_INST_DEFINE(n, NULL, NULL, NULL, &wheel_config_##n, \
-                           POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY, &wheel_api);
+                           POST_KERNEL, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &wheel_api);
 DT_INST_FOREACH_STATUS_OKAY(WHEEL_DEFINE)

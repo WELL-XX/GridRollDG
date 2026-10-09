@@ -40,6 +40,7 @@ jobs:
           west init -l /tmp/gridrolldg-workspace/config
           cd /tmp/gridrolldg-workspace
           west update --narrow --fetch-opt=--filter=blob:none
+          west zephyr-export
           python3 "$GITHUB_WORKSPACE/scripts/freeze_manifest.py" > "$GITHUB_WORKSPACE/artifacts/west-frozen.yml"
       - name: Build left, right, diagnostic and settings-reset firmware
         run: python3 scripts/build_firmware.py --workspace /tmp/gridrolldg-workspace --out artifacts

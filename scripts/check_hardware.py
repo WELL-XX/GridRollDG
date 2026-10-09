@@ -104,7 +104,10 @@ def compiled_checks(build, target):
             pin = gpio(sensor.props[prop].val[0])
             assert pin == net_gpio(side, net)
             used.append(pin)
-        assert sensor.props["res-cpi"].val == 988
+        tuning = (ROOT/"config/trackball.dtsi").read_text(encoding="utf-8")
+        cpi = int(re.search(r"#define\s+GRIDROLLDG_TRACKBALL_CPI\s+(\d+)", tuning).group(1))
+        assert 608 <= cpi <= 4826 and cpi % 38 == 0, "Unsupported PAW3222 CPI"
+        assert sensor.props["res-cpi"].val == cpi
         assert sensor.props["poll-interval-ms"].val == 5
     assert len(used) == len({tuple(p) for p in used}), "Active GPIO functions overlap"
     print(f"{target}: compiled GPIOs, role, sensor, Studio and battery validated")
