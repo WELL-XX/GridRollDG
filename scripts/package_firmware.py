@@ -12,6 +12,19 @@ from check_addresses import validate_hex
 
 ROOT = Path(__file__).resolve().parents[1]
 
+def merge_first_flash(bootstrap, app_path, target):
+    validate_hex(bootstrap, "bootloader")
+    validate_hex(app_path, "app")
+    image = IntelHex(str(bootstrap))
+    app = IntelHex(str(app_path))
+    # Type-05 execution hints are metadata, not flash bytes. Cortex-M resets
+    # through the MBR vector at address zero; the two input hints differ.
+    image.start_addr = None
+    app.start_addr = None
+    image.merge(app, overlap="error")
+    image.write_hex_file(str(target))
+    validate_hex(target, "merged")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--firmware", type=Path, required=True)
@@ -26,12 +39,8 @@ def main():
     validate_hex(bootstrap, "bootloader")
     for side in ("left", "right"):
         app_path = args.firmware/f"GridRollDG-{side}.hex"
-        validate_hex(app_path, "app")
-        image = IntelHex(str(bootstrap))
-        image.merge(IntelHex(str(app_path)), overlap="error")
         target = out/f"GridRollDG-{side}-first-flash.hex"
-        image.write_hex_file(str(target))
-        validate_hex(target, "merged")
+        merge_first_flash(bootstrap, app_path, target)
     for name in ("README.md", "THIRD_PARTY_NOTICES.md", "LICENSE"):
         shutil.copyfile(ROOT/name, out/name)
     shutil.copytree(ROOT/"docs", out/"docs", dirs_exist_ok=True)
