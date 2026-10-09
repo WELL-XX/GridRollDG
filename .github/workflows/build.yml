@@ -30,6 +30,8 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_*.py'
           cc -Wall -Wextra -Werror -std=c11 -Idrivers/input tests/test_sdio.c drivers/input/paw3222_sdio.c -o /tmp/test-sdio
           /tmp/test-sdio
+          cc -Wall -Wextra -Werror -std=c11 -Itests/mock -Idrivers/input tests/test_sensor.c drivers/input/paw3222_sdio.c -o /tmp/test-sensor
+          /tmp/test-sensor
       - name: Fetch locked firmware dependencies
         run: |
           mkdir -p /tmp/gridrolldg-workspace/config
@@ -38,7 +40,7 @@ jobs:
           west init -l /tmp/gridrolldg-workspace/config
           cd /tmp/gridrolldg-workspace
           west update --narrow --fetch-opt=--filter=blob:none
-          west manifest --freeze > "$GITHUB_WORKSPACE/artifacts/west-frozen.yml"
+          python3 "$GITHUB_WORKSPACE/scripts/freeze_manifest.py" > "$GITHUB_WORKSPACE/artifacts/west-frozen.yml"
       - name: Build left, right, diagnostic and settings-reset firmware
         run: python3 scripts/build_firmware.py --workspace /tmp/gridrolldg-workspace --out artifacts
       - name: Upload private firmware and build logs
