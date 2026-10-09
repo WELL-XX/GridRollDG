@@ -11,9 +11,9 @@
 #define DT_INST_FOREACH_STATUS_OKAY(fn)
 #define CONFIG_GRIDROLLDG_PAW3222_LOG_LEVEL 1
 #define LOG_MODULE_REGISTER(...)
-#define LOG_INF(...)
-#define LOG_WRN(...)
-#define LOG_ERR(...)
+#define LOG_INF(...) do {} while (0)
+#define LOG_WRN(...) do {} while (0)
+#define LOG_ERR(...) do {} while (0)
 #define K_FOREVER (-1)
 #define K_NO_WAIT 0
 #define K_MSEC(ms) (ms)
