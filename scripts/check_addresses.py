@@ -36,7 +36,7 @@ def validate_hex(path, kind):
         assert reset & 1 and APP_START <= (reset & ~1) < APP_END, "Invalid application reset vector"
     return image, flash
 
-def validate_uf2(path, image, flash):
+def validate_uf2(path, image, flash, binary_path=None):
     data = Path(path).read_bytes()
     assert data and len(data) % 512 == 0, "Invalid UF2 length"
     covered = {}
@@ -52,18 +52,29 @@ def validate_uf2(path, image, flash):
             assert addr+i not in covered, "Duplicate UF2 payload address"
             covered[addr+i] = value
     assert all(covered.get(a) == image[a] for a in flash), "UF2/HEX content mismatch"
-    hex_addresses = set(image.addresses())
-    assert all(a in hex_addresses or value == 0xFF for a, value in covered.items()), "Unexpected UF2 data"
+    if binary_path is not None:
+        binary = Path(binary_path).read_bytes()
+        assert 0 < len(binary) <= APP_END-APP_START
+        padded_size = (len(binary)+255)//256*256
+        assert len(covered) == padded_size and min(covered) == APP_START and max(covered) == APP_START+padded_size-1, "UF2/BIN extent mismatch"
+        for address, value in covered.items():
+            offset = address-APP_START
+            expected = binary[offset] if offset < len(binary) else 0
+            assert value == expected, "UF2/BIN content mismatch"
+    else:
+        hex_addresses = set(image.addresses())
+        assert all(a in hex_addresses or value == 0xFF for a, value in covered.items()), "Unexpected UF2 data"
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("hex", type=Path)
     parser.add_argument("--kind", choices=["app", "bootloader", "merged"], default="app")
     parser.add_argument("--uf2", type=Path)
+    parser.add_argument("--bin", type=Path, help="Zephyr binary; UF2 converter pads its last block with zero")
     args = parser.parse_args()
     image, flash = validate_hex(args.hex, args.kind)
     if args.uf2:
-        validate_uf2(args.uf2, image, flash)
+        validate_uf2(args.uf2, image, flash, args.bin)
     print(f"{args.hex.name}: payload validated ({min(flash):#x}–{max(flash):#x})")
 
 if __name__ == "__main__":

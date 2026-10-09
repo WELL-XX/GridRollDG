@@ -40,12 +40,29 @@ def main():
             sys.exit(result.returncode)
         subprocess.run([sys.executable, str(ROOT/"scripts/check_hardware.py"),
                         "--build", str(build), "--target", name], check=True)
-        for ext in ("uf2", "hex", "elf", "map"):
+        for ext in ("uf2", "hex", "bin", "elf", "map"):
             shutil.copyfile(build/f"zephyr/zmk.{ext}", out/f"{stem}.{ext}")
         shutil.copyfile(build/"zephyr/.config", out/f"{stem}.config")
         shutil.copyfile(build/"zephyr/zephyr.dts", out/f"{stem}.dts")
         subprocess.run([sys.executable, str(ROOT/"scripts/check_addresses.py"),
-                        str(out/f"{stem}.hex"), "--uf2", str(out/f"{stem}.uf2")], check=True)
+                        str(out/f"{stem}.hex"), "--uf2", str(out/f"{stem}.uf2"),
+                        "--bin", str(out/f"{stem}.bin")], check=True)
+    license_roots = {"ZMK": workspace/"zmk", "Zephyr": workspace/"zephyr",
+                     "CMSIS": workspace/"modules/hal/cmsis",
+                     "Nordic-nrfx": workspace/"modules/hal/nordic/nrfx",
+                     "TinyCrypt": workspace/"modules/crypto/tinycrypt",
+                     "nanopb": workspace/"modules/lib/nanopb",
+                     "ZMK-Studio-messages": workspace/"modules/msgs/zmk-studio-messages",
+                     "SEGGER": workspace/"modules/debug/segger"}
+    for name, source in license_roots.items():
+        candidates = sorted(set(source.glob("LICENSE*")) | set(source.glob("license*")))
+        if name in ("ZMK", "Zephyr"):
+            assert candidates, f"Missing upstream license: {name}"
+        for candidate in candidates:
+            if candidate.is_file():
+                target = out/"licenses/firmware"/name/candidate.name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(candidate, target)
 
 if __name__ == "__main__":
     main()

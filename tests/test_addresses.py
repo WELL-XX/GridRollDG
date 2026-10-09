@@ -37,6 +37,20 @@ class PayloadTests(unittest.TestCase):
         path.write_bytes(self.uf2_block())
         validate_uf2(path, self.image, self.image.addresses())
 
+    def test_zephyr_binary_zero_padding_checked(self):
+        binary = bytes(self.image[0x26000+i] for i in range(9))
+        bin_path = Path(self.temp.name)/"app.bin"
+        bin_path.write_bytes(binary)
+        block = self.uf2_block()
+        block[32:288] = binary+bytes(256-len(binary))
+        path = Path(self.temp.name)/"zephyr.uf2"
+        path.write_bytes(block)
+        validate_uf2(path, self.image, self.image.addresses(), bin_path)
+        block[100] = 1
+        path.write_bytes(block)
+        with self.assertRaises(AssertionError):
+            validate_uf2(path, self.image, self.image.addresses(), bin_path)
+
     def test_uf2_payload_mismatch_rejected(self):
         block = self.uf2_block()
         block[32] ^= 1
